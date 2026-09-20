@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+
+# Experiment outputs and Unity captures
+data/
+data_*/
+jsbsim_data/
+comparison_plots*/
+panorama_*/
+rectified_panorama_*/
+
+# Checkpoints and hardware-specific inference artifacts
+*.pth
+*.pt
+*.onnx
+exp4_realtime_benchmark/weights/*
+exp4_realtime_benchmark/engines/*
+exp4_realtime_benchmark/memory_benchmark/*
+exp4_realtime_benchmark/results_*.csv
+exp4_realtime_benchmark/results_*.json

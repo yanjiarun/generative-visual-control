@@ -4,7 +4,7 @@ Official repository for the paper **"Generative Visual Control: Flow Matching fo
 
 > **Code release notice**
 >
-> The source code, training scripts, evaluation tools, and documentation will be released soon. This repository currently provides project information and visual materials from the paper.
+> The source code, training scripts, evaluation tools, trained-model interfaces, and experiment documentation are available in this repository. The real-time benchmark package includes separate PC PyTorch, Orin NX PyTorch, and Orin NX TensorRT entry points.
 
 ## Overview
 
@@ -16,27 +16,37 @@ Generative Visual Control (GVC) learns to generate guidance vector field paramet
 
 ## Visual Results
 
-The following figures compare the proposed GVC method with classical and CNN-based baselines on representative fixed-wing UAV guidance tasks. The desired curve is shown in green, while the proposed GVC trajectory is shown in red.
+The following figures compare the proposed GVC method with classical and learning-based baselines on representative fixed-wing UAV guidance tasks. The desired curve is shown in green, while the proposed GVC trajectory is shown in red.
 
-### Cassini Curve
+### Basic Path Following
 
 <p align="center">
   <img src="figures/trajectory_comparison_cassini.png" alt="Trajectory comparison on the Cassini curve" width="95%">
 </p>
 
-### Quartic Curve
+### Multimodal Obstacle Avoidance
 
 <p align="center">
-  <img src="figures/trajectory_comparison_quartic.png" alt="Trajectory comparison on the quartic curve" width="95%">
+  <img src="figures/trajectory_comparison_quartic_obstacle.png" alt="Trajectory comparison in the multimodal quartic obstacle-avoidance experiment" width="95%">
+</p>
+
+### High-Fidelity Fixed-Wing Simulation with JSBSim
+
+<p align="center">
+  <img src="figures/trajectory_comparison_cassini_jsbsim.png" alt="Trajectory comparison with the JSBSim fixed-wing dynamics model" width="95%">
 </p>
 
 ## Repository Status
 
-This repository is under active preparation. The planned release will include:
+The repository contains the reproducible implementation and visualization code for the experiments in the paper:
 
-- Source code for the proposed GVC framework.
-- Training and inference scripts.
-- Evaluation and visualization utilities.
+- Core GVC, CNN, Diffusion Policy, and classical vector-field controllers.
+- Experiment scripts for basic path following, multimodal obstacle avoidance, and JSBSim fixed-wing simulation.
+- Training, offline evaluation, closed-loop evaluation, and plotting utilities.
+- Standalone benchmark code for PC PyTorch, Orin NX PyTorch, and Orin NX TensorRT.
+
+Unity communication uses the separately maintained `AFPV_Kit` package, which
+is not included in this repository.
 
 
 
