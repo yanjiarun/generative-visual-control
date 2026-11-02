@@ -1,9 +1,12 @@
 import math
 
+from src.jsbsim_config import X8_AUTOPILOT_PID
+
 from src.jsbsim_controllers import (
     CNNVisualControlJSBSim,
     DiffusionPolicyVisualControlJSBSim,
     GenerativeVisualControlJSBSim,
+    PositionGVFVisualControlJSBSim,
     TraditionalVectorFieldControlJSBSim,
 )
 
@@ -21,6 +24,7 @@ METHOD_HEADING_PARAMS = {
     "traditional": SHARED_HEADING_PARAMS,
     "cnn": SHARED_HEADING_PARAMS,
     "generative": SHARED_HEADING_PARAMS,
+    "position_gvf": SHARED_HEADING_PARAMS,
     # DP uses a separate heading gain because it directly controls heading rate.
     "dp": {
         "heading_lookahead": 6.0,
@@ -37,6 +41,8 @@ if __name__ == "__main__":
         "path_type": PATH_TYPE,
         "model_path": f"./src/generative_model/models/flow_matching_{PATH_TYPE}_models/flow_matching_policy_final.pth",
         "cnn_model_path": f"./src/baseline/models/cnn_{PATH_TYPE}_models/cnn_final.pth",
+        "position_model_path": "./src/baseline/models/position_cassini_cnn/position_best.pth",
+        "autopilot_pid": X8_AUTOPILOT_PID,
         "dp_model_path": f"./src/generative_model/models/diffusion_policy_{PATH_TYPE}_models/diffusion_policy_final.pth",
         "init_pose": [576.0, 275.0, math.pi / 3.0],
         "target_altitude": 75.0,
@@ -58,6 +64,7 @@ if __name__ == "__main__":
         ("cnn", CNNVisualControlJSBSim),
         ("dp", DiffusionPolicyVisualControlJSBSim),
         ("generative", GenerativeVisualControlJSBSim),
+        ("position_gvf", PositionGVFVisualControlJSBSim),
     ]
     for method, controller_class in controllers:
         config = {**base_config, **METHOD_HEADING_PARAMS[method], "save_folder":

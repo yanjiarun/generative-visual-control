@@ -100,6 +100,41 @@ def _error_summary(errors, start=500):
         values = values[start:]
     return np.mean(values), np.max(values), np.sqrt(np.mean(values**2)), np.std(values)
 
+
+def save_localization_statistics(data_folders, labels, output_folder, max_length=2000):
+    rows = []
+    for folder, label in zip(data_folders, labels):
+        path = os.path.join(folder, "position_errors_m.npy")
+        if not os.path.isfile(path):
+            continue
+        errors = np.load(path)
+        if max_length is not None:
+            errors = errors[:max_length]
+        if not len(errors):
+            continue
+        row = {"Method": label, "Frames": len(errors),
+               "Position_MAE_m": float(np.mean(errors)),
+               "Position_RMSE_m": float(np.sqrt(np.mean(errors ** 2))),
+               "Position_Max_Error_m": float(np.max(errors))}
+        for name, prefix in (("cnn_inference_times_ms", "CNN_Inference"),
+                             ("position_gvf_times_ms", "Position_GVF")):
+            path = os.path.join(folder, f"{name}.npy")
+            if not os.path.isfile(path):
+                continue
+            times = np.load(path)[:len(errors)]
+            start = 20 if len(times) > 20 else 0
+            times = times[start:]
+            if len(times):
+                row[f"{prefix}_Mean_ms"] = float(np.mean(times))
+                row[f"{prefix}_P95_ms"] = float(np.percentile(times, 95))
+                row["Timing_Warmup_Frames"] = start
+        rows.append(row)
+    if rows:
+        os.makedirs(output_folder, exist_ok=True)
+        pd.DataFrame(rows).to_csv(
+            os.path.join(output_folder, "position_localization_inference_statistics.csv"), index=False)
+
+
 def compare_multiple_data(data_folders, labels=None, path_type="none", max_length=None, init_pose=None):
     """
     Create comparison plots for multiple flight datasets
@@ -128,7 +163,7 @@ def compare_multiple_data(data_folders, labels=None, path_type="none", max_lengt
     
     time = np.arange(len(all_data[0]['positions']))
     
-    colors = ['gray', 'darkblue', 'darkorange', 'darkred']
+    colors = ['gray', 'darkblue', 'darkorange', 'darkred', 'purple']
     
     plt.rcParams['font.family'] = 'Times New Roman'
     plt.rcParams['font.size'] = 24
@@ -309,6 +344,7 @@ def compare_multiple_data(data_folders, labels=None, path_type="none", max_lengt
         for stats in geometric_stats:
             print(f"- {output_folder}/{stats['method']}_geometric_errors.npy")
     
+    save_localization_statistics(data_folders, labels, output_folder, max_length)
     print(f"\nComparison plots saved to {output_folder}")
 
 if __name__ == "__main__":
@@ -319,5 +355,9 @@ if __name__ == "__main__":
         for method in ("traditional", "cnn", "dp", "generative")
     ]
     labels = ["Classical", "CNN-based", "Diffusion Policy", "Proposed GVC"]
+    position_folder = f"./data/{PATH_TYPE}_path_following_data/position_gvf"
+    if os.path.isfile(os.path.join(position_folder, "poses.npy")):
+        data_folders.append(position_folder)
+        labels.append("VisLoc-GVF")
     compare_multiple_data(data_folders, labels=labels, path_type=PATH_TYPE,
                           max_length=2000, init_pose=init_pose)

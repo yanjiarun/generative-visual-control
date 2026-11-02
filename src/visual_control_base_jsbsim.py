@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import time
@@ -23,6 +24,7 @@ from AFPV_Kit.common.transfer import (
 )
 from AFPV_Kit.objects.fixedwing import FixedWing
 from AFPV_Kit.utils.autopilot import X8Autopilot
+from src.jsbsim_config import X8_AUTOPILOT_PID
 from src.online_visualizer import ZMQDataSender
 from src.path_following.collect_imgs_path_following import PATH_CONFIGS
 
@@ -52,7 +54,12 @@ class VisualControlJSBSim:
     requires_image = True
 
     def __init__(self, config):
-        self.config = config
+        self.config = dict(config)
+        overrides = config.get("autopilot_pid") or {}
+        self.config["autopilot_pid"] = {
+            loop: {**gains, **overrides.get(loop, {})}
+            for loop, gains in X8_AUTOPILOT_PID.items()
+        }
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.path_type = config.get("path_type", "cassini")
         self.scale_factor = PATH_CONFIGS[self.path_type]["scale_factor"]
@@ -260,7 +267,20 @@ class VisualControlJSBSim:
             print("Control loop interrupted")
         finally:
             if save_data:
-                self._save(self.config["save_folder"], log)
+                folder = self.config["save_folder"]
+                self._save(folder, log)
+                effective = {**self.config, "control_dt": self.control_dt,
+                             "jsbsim_dt": float(self.config.get("jsbsim_dt", 0.001)),
+                             "target_speed": self.target_speed,
+                             "target_altitude": self.target_altitude,
+                             "heading_gain": self.heading_gain,
+                             "heading_lookahead": self.heading_lookahead,
+                             "max_turn_rate_deg": math.degrees(self.max_turn_rate),
+                             "max_bank_deg": math.degrees(self.autopilot.max_bank),
+                             "max_frames": max_frames, "saved_frames": len(log["poses"])}
+                with open(os.path.join(folder, "run_config.json"), "w", encoding="utf-8") as handle:
+                    json.dump(effective, handle, indent=2,
+                              default=lambda value: value.tolist() if hasattr(value, "tolist") else str(value))
             if self.unity_bridge:
                 self.unity_bridge.close()
             if self.sender:

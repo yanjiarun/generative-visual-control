@@ -3,15 +3,17 @@ from src.generative_visual_control import GenerativeVisualControl
 from src.traditional_vector_field_control import TraditionalVectorFieldControl
 from src.cnn_visual_control import CNNVisualControl
 from src.diffusion_policy_control import DiffusionPolicyVisualControl
+from src.position_gvf_control import PositionGVFVisualControl
 
 if __name__ == "__main__":
-    CONTROL_METHOD = "dp"
+    CONTROL_METHOD = "dp"  # generative, traditional, cnn, position_gvf, or dp
     PATH_TYPE = "cassini"  # "quartic" or "cassini"
 
     config = {
         "path_type": PATH_TYPE,
         "model_path": f"./src/generative_model/models/flow_matching_{PATH_TYPE}_models/flow_matching_policy_final.pth",
         "cnn_model_path": f"./src/baseline/models/cnn_{PATH_TYPE}_models/cnn_final.pth",
+        "position_model_path": "./src/baseline/models/position_cassini_cnn/position_best.pth",
         "dp_model_path": f"./src/generative_model/models/diffusion_policy_{PATH_TYPE}_models/diffusion_policy_final.pth",
         "init_pose": [576, 275, np.pi/3],
         "v0": 23.0,
@@ -35,6 +37,9 @@ if __name__ == "__main__":
         elif CONTROL_METHOD == "cnn":
             controller = CNNVisualControl(config)
             print("CNNVisualControl initialized successfully")
+        elif CONTROL_METHOD == "position_gvf":
+            controller = PositionGVFVisualControl(config)
+            print("VisLoc-GVF initialized successfully")
         elif CONTROL_METHOD == "dp":
             controller = DiffusionPolicyVisualControl(config)
             print("DiffusionPolicyVisualControl initialized successfully")

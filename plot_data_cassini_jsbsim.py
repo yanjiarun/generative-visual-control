@@ -8,6 +8,7 @@ from plot_data_cassini import (
     build_cassini_zero_contour,
     calculate_algebraic_path_errors,
     calculate_geometric_path_errors,
+    save_localization_statistics,
     _error_summary,
 )
 from src.path_following.create_path_cassini_oval import compute_cassini_field
@@ -15,7 +16,7 @@ from src.path_following.create_path_cassini_oval import compute_cassini_field
 
 DT = 0.05
 BASE_X, BASE_Y, SCALE = 576.0, 275.0, 100.0
-COLORS = ["gray", "darkblue", "darkorange", "darkred"]
+COLORS = ["gray", "darkblue", "darkorange", "darkred", "purple"]
 
 
 def load_jsbsim_data(folder, max_length=None):
@@ -224,6 +225,7 @@ def compare_jsbsim_data(data_folders, labels, output_folder,
         print(f"{row['Method']:<20} {row['Mean_Error_m']:<10.4f} "
               f"{row['Max_Error_m']:<10.4f} {row['RMSE_m']:<10.4f} "
               f"{row['Std_Error_m']:<10.4f}")
+    save_localization_statistics(data_folders, labels, output_folder, max_length)
     print(f"Comparison plots saved to {output_folder}")
 
 
@@ -233,5 +235,9 @@ if __name__ == "__main__":
     methods = ["traditional", "cnn", "dp", "generative"]
     labels = ["Classical", "CNN-based", "Diffusion Policy", "Proposed GVC"]
     folders = [os.path.join(root, method) for method in methods]
+    position_folder = os.path.join(root, "position_gvf")
+    if os.path.isfile(os.path.join(position_folder, "positions.npy")):
+        folders.append(position_folder)
+        labels.append("VisLoc-GVF")
     output = "./comparison_plots_cassini_jsbsim"
     compare_jsbsim_data(folders, labels, output, max_length=2000, dt=DT)
